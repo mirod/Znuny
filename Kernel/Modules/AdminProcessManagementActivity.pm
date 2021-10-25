@@ -787,6 +787,8 @@ sub _ShowEdit {
                     ID          => $ActivityDialogData->{ID},
                     EntityID    => $ActivityDialogData->{EntityID},
                     Name        => $ActivityDialogData->{Name},
+                    Scope       => $ActivityDialogData->{Scope},
+                    ParentID    => $ActivityDialogData->{ParentID},
                     AvailableIn => $AvailableIn,
                 },
             );
@@ -822,6 +824,8 @@ sub _ShowEdit {
                     ID          => $ActivityDialogData->{ID},
                     EntityID    => $ActivityDialogData->{EntityID},
                     Name        => $ActivityDialogData->{Name},
+                    Scope       => $ActivityDialogData->{Scope},
+                    ParentID    => $ActivityDialogData->{ParentID},
                     AvailableIn => $AvailableIn,
                 },
             );
@@ -879,6 +883,8 @@ sub _ShowEdit {
                     ID          => $ActivityDialogData->{ID},
                     EntityID    => $ActivityDialogData->{EntityID},
                     Name        => $ActivityDialogData->{Name},
+                    Scope       => $ActivityDialogData->{Scope},
+                    ParentID    => $ActivityDialogData->{ParentID},
                     AvailableIn => $AvailableIn,
                 },
             );

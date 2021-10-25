@@ -1527,7 +1527,7 @@ sub Run {
 
         my $Output = $LayoutObject->Output(
             TemplateFile => "AdminProcessManagementProcessAccordion",
-            Data         => {},
+            Data         => { ProcessID => $ParamObject->GetParam( Param => 'ProcessID' ) },
         );
 
         # send HTML response
@@ -2039,6 +2039,7 @@ sub _PushSessionScreen {
         Subaction => $Param{Subaction},
         ID        => $Param{ID},
         EntityID  => $Param{EntityID},
+        ProcessID  => $Param{ProcessID},
     };
 
     # convert screens path to string (JSON)

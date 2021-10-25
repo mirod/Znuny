@@ -179,6 +179,14 @@ ul#ProcessElements li.AccordionElement div.Content ul li.OneRow {
     cursor: move;
 }
 
+ul#ProcessElements li.AccordionElement div.Content ul li.OneRow.InScope {
+    display:block;
+}
+
+ul#ProcessElements li.AccordionElement div.Content ul li.OneRow.NotInScope {
+    display:none;
+}
+
 ul#ProcessElements li.AccordionElement div.Content ul li > span {
     position: absolute;
     right: 5px;
@@ -203,6 +211,10 @@ ul#ProcessElements li.AccordionElement div.Content .ProcessElementButton {
     height: 20px;
     width: 200px;
     border: 1px solid #CCC;
+}
+
+.ScopeFilter {
+    margin-bottom: .5em;
 }
 
 /**
@@ -705,6 +717,18 @@ div.AJAXWaiting {
     display: inline;
 }
 
+/**
+ * @subsubsection     ActivityDialog
+ */
+
+.GreyedOutParent {
+    color: gray;
+    font-style: italic;
+}
+
+/* otherwise TableFilterContainer input is set to 100% width */
+#FilterAvailableActivityDialogs {
+    width: 90%;
 }
 
 /**
