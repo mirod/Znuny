@@ -60,6 +60,22 @@
                                 </div>
                             </div>
                             <div class="Clear"></div>
+                            <label class="Mandatory" for="ScopeSelection"><span class="Marker">*</span> [% Translate("Scope") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ScopeSelection %]
+                                <div id="ScopeError" class="TooltipErrorMessage">
+                                    <p>[% Translate("This field is required.") | html %]</p>
+                                </div>
+                            </div>
+                            <div class="Clear"></div>
+                            <label class="Mandatory" for="ParentID"><span class="Marker">*</span> [% Translate("Parent Process") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ParentSelection %]
+                                <div id="ParentError" class="TooltipErrorMessage">
+                                    <p>[% Translate("This field is required for activities with a "Current Process" scope.") | html %]</p>
+                                </div>
+                            </div>
+                            <div class="Clear"></div>
                         </fieldset>
                     </div>
                 </div>

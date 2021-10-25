@@ -58,6 +58,8 @@ sub Run {
 
         return $Self->_ShowEdit(
             %Param,
+            ScopeSelection => $Self->_ScopeSelection($LayoutObject),
+            ParentSelection => $Self->_ParentSelection($LayoutObject, $ParamObject->GetParam( Param => 'ProcessID' )),
             Action => 'New',
         );
     }
@@ -77,12 +79,28 @@ sub Run {
         my $GetParam = $Self->_GetParams();
 
         # set new configuration
-        $TransitionData->{Name}   = $GetParam->{Name};
-        $TransitionData->{Config} = $GetParam->{Config};
+        $TransitionData->{Name}     = $GetParam->{Name};
+        $TransitionData->{Config}   = $GetParam->{Config};
+        $TransitionData->{Scope}    = $GetParam->{Scope};
+        $TransitionData->{ParentID} = $GetParam->{ParentID};
 
         # check required parameters
         my %Error;
         if ( !$GetParam->{Name} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required');
+        }
+
+        if ( !$GetParam->{Scope} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required');
+        }
+
+        if ( $GetParam->{Scope} eq 'Process' && !$GetParam->{ParentID} ) {
 
             # add server error error class
             $Error{NameServerError}        = 'ServerError';
@@ -117,6 +135,8 @@ sub Run {
             Name     => $TransitionData->{Name},
             EntityID => $EntityID,
             Config   => $TransitionData->{Config},
+            Scope    => $TransitionData->{Scope},
+            ParentID => $TransitionData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -228,6 +248,9 @@ sub Run {
             UserID => $Self->{UserID},
         );
 
+        my $ScopeSelection = $Self->_ScopeSelection($LayoutObject, $TransitionData->{Scope});
+        my $ParentSelection = $Self->_ParentSelection($LayoutObject, $TransitionData->{ParentID});
+
         # check for valid Transition data
         if ( !IsHashRefWithData($TransitionData) ) {
             return $LayoutObject->ErrorScreen(
@@ -240,9 +263,11 @@ sub Run {
 
         return $Self->_ShowEdit(
             %Param,
-            TransitionID   => $TransitionID,
-            TransitionData => $TransitionData,
-            Action         => 'Edit',
+            TransitionID    => $TransitionID,
+            TransitionData  => $TransitionData,
+            ScopeSelection  => $ScopeSelection,
+            ParentSelection => $ParentSelection,
+            Action          => 'Edit',
         );
 
     }
@@ -265,6 +290,8 @@ sub Run {
         $TransitionData->{Name}     = $GetParam->{Name};
         $TransitionData->{EntityID} = $EntityID;
         $TransitionData->{Config}   = $GetParam->{Config};
+        $TransitionData->{Scope}    = $GetParam->{Scope};
+        $TransitionData->{ParentID} = $GetParam->{ParentID};
 
         # check required parameters
         my %Error;
@@ -291,6 +318,8 @@ sub Run {
             EntityID => $EntityID,
             Name     => $TransitionData->{Name},
             Config   => $TransitionData->{Config},
+            Scope    => $TransitionData->{Scope},
+            ParentID => $TransitionData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -656,7 +685,9 @@ sub _GetParams {
     my $ParamObject = $Kernel::OM->Get('Kernel::System::Web::Request');
 
     # get parameters from web browser
-    $GetParam->{Name}            = $ParamObject->GetParam( Param => 'Name' ) || '';
+    for my $ParamName ( qw( Name Scope ParentID )) {
+        $GetParam->{$ParamName} = $ParamObject->GetParam( Param => $ParamName ) || '';
+    }
     $GetParam->{ConditionConfig} = $ParamObject->GetParam( Param => 'ConditionConfig' )
         || '';
 
@@ -793,6 +824,40 @@ sub _CheckTransitionUsage {
     }
 
     return \@Usage;
+}
+
+sub _ScopeSelection {
+    my( $Self, $LayoutObject, $CurrentScope ) = @_;
+
+    my $ScopeSelection = $LayoutObject->BuildSelection(
+            Data       => { Global => 'Global', Process => 'Current Process', },
+            Name       => 'Scope',
+            ID         => 'Scope',
+            SelectedID => ($CurrentScope || 'Global'),
+            Sort        => 'AlphanumericKey', # 'Global' before 'Process'
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ScopeSelection;
+}
+
+sub _ParentSelection {
+    my( $Self, $LayoutObject, $CurrentParentID ) = @_;
+
+    my $ProcessList = $Kernel::OM->Get('Kernel::System::ProcessManagement::DB::Process')->ProcessList(
+        UserID => 1,
+    );
+
+    my $ParentSelection = $LayoutObject->BuildSelection(
+            Data       => $ProcessList,
+            Name       => 'ParentID',
+            ID         => 'ParentID',
+            SelectedID => $CurrentParentID,
+            Sort        => 'AlphanumericKey',
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ParentSelection;
 }
 
 1;
