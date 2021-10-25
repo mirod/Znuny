@@ -60,8 +60,13 @@ sub Run {
     # ------------------------------------------------------------ #
     if ( $Self->{Subaction} eq 'ActivityNew' ) {
 
+        my $ProcessID = $ParamObject->GetParam( Param => 'ProcessID' ) || $ParamObject->GetParam( Param => 'ID' );
+
         return $Self->_ShowEdit(
             %Param,
+            ScopeSelection => $Self->_ScopeSelection($LayoutObject),
+            ParentSelection => $Self->_ParentSelection($LayoutObject, $ProcessID),
+            ProcessID => $ProcessID,
             Action => 'New',
         );
     }
@@ -83,6 +88,8 @@ sub Run {
         # set new configuration
         $ActivityData->{Name}   = $GetParam->{Name};
         $ActivityData->{Config} = {};
+        $ActivityData->{Scope}  = $GetParam->{Scope};
+        $ActivityData->{ParentID}  = $GetParam->{ParentID};
 
         # set the rest of the config
         if ( IsArrayRefWithData( $GetParam->{ActivityDialogs} ) ) {
@@ -130,6 +137,20 @@ sub Run {
             $Error{NameServerErrorMessage} = Translatable('This field is required');
         }
 
+        if ( !$GetParam->{Scope} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required');
+        }
+
+        if ( $GetParam->{Scope} eq 'Process' && !$GetParam->{ParentID} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required');
+        }
+
         # if there is an error return to edit screen
         if ( IsHashRefWithData( \%Error ) ) {
             return $Self->_ShowEdit(
@@ -158,6 +179,8 @@ sub Run {
             Name     => $ActivityData->{Name},
             EntityID => $EntityID,
             Config   => $ActivityData->{Config},
+            Scope    => $GetParam->{Scope},
+            ParentID => $GetParam->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -269,6 +292,9 @@ sub Run {
             UserID => $Self->{UserID},
         );
 
+        my $ScopeSelection = $Self->_ScopeSelection($LayoutObject, $ActivityData->{Scope});
+        my $ParentSelection = $Self->_ParentSelection($LayoutObject, $ActivityData->{ParentID});
+
         # check for valid Activity data
         if ( !IsHashRefWithData($ActivityData) ) {
             return $LayoutObject->ErrorScreen(
@@ -279,9 +305,12 @@ sub Run {
 
         return $Self->_ShowEdit(
             %Param,
-            ActivityID   => $ActivityID,
-            ActivityData => $ActivityData,
-            Action       => 'Edit',
+            ActivityID      => $ActivityID,
+            ActivityData    => $ActivityData,
+            ScopeSelection  => $ScopeSelection,
+            ParentSelection => $ParentSelection,
+            ProcessID       => $ParamObject->GetParam( Param => 'ProcessID' ),
+            Action          => 'Edit',
         );
     }
 
@@ -302,6 +331,8 @@ sub Run {
         # set new configuration
         $ActivityData->{Name}     = $GetParam->{Name};
         $ActivityData->{EntityID} = $GetParam->{EntityID};
+        $ActivityData->{Scope}    = $GetParam->{Scope};
+        $ActivityData->{ParentID} = $GetParam->{ParentID};
         $ActivityData->{Config}   = {};
 
         # set the rest of the config
@@ -367,6 +398,8 @@ sub Run {
             Name     => $ActivityData->{Name},
             EntityID => $ActivityData->{EntityID},
             Config   => $ActivityData->{Config},
+            Scope    => $ActivityData->{Scope},
+            ParentID => $ActivityData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -578,6 +611,8 @@ sub Run {
             Name     => $ActivityData->{Name},
             EntityID => $ActivityData->{EntityID},
             Config   => $ActivityData->{Config},
+            Scope    => $ActivityData->{Scope} // 'Global',
+            ParentID => $ActivityData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -877,7 +912,7 @@ sub _GetParams {
 
     # get parameters from web browser
     for my $ParamName (
-        qw( Name EntityID )
+        qw( Name EntityID Scope ProcessID ParentID)
         )
     {
         $GetParam->{$ParamName} = $ParamObject->GetParam( Param => $ParamName ) || '';
@@ -1021,6 +1056,40 @@ sub _CheckActivityUsage {
     }
 
     return \@Usage;
+}
+
+sub _ScopeSelection {
+    my( $Self, $LayoutObject, $CurrentScope ) = @_;
+
+    my $ScopeSelection = $LayoutObject->BuildSelection(
+            Data       => { Global => 'Global', Process => 'Current Process', },
+            Name       => 'Scope',
+            ID         => 'Scope',
+            SelectedID => ($CurrentScope || 'Global'),
+            Sort        => 'AlphanumericKey', # 'Global' before 'Process'
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ScopeSelection;
+}
+
+sub _ParentSelection {
+    my( $Self, $LayoutObject, $CurrentParentID ) = @_;
+
+    my $ProcessList = $Kernel::OM->Get('Kernel::System::ProcessManagement::DB::Process')->ProcessList(
+        UserID => 1,
+    );
+
+    my $ParentSelection = $LayoutObject->BuildSelection(
+            Data       => $ProcessList,
+            Name       => 'ParentID',
+            ID         => 'ParentID',
+            SelectedID => $CurrentParentID,
+            Sort        => 'AlphanumericKey',
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ParentSelection;
 }
 
 1;

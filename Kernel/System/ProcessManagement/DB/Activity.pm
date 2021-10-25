@@ -72,6 +72,8 @@ returns the id of the created activity if success or undef otherwise
         Config      => $ConfigHashRef,   # mandatory, activity configuration to be stored in YAML
                                          #   format
         UserID      => 123,              # mandatory
+        Scope       => 'Global'          # mandatory 'Global' or 'Process'
+        ParentID    => 123               # parent process id, used if scope is 'Process'
     );
 
 Returns:
@@ -84,7 +86,7 @@ sub ActivityAdd {
     my ( $Self, %Param ) = @_;
 
     # check needed stuff
-    for my $Key (qw(EntityID Name Config UserID)) {
+    for my $Key (qw(EntityID Name Config Scope UserID)) {
         if ( !$Param{$Key} ) {
             $Kernel::OM->Get('Kernel::System::Log')->Log(
                 Priority => 'error',
@@ -92,6 +94,14 @@ sub ActivityAdd {
             );
             return;
         }
+    }
+
+    if( $Param{Scope} eq 'Process' && !$Param{ParentID} ) {
+        $Kernel::OM->Get('Kernel::System::Log')->Log(
+            Priority => 'error',
+            Message  => "Need ParentID if scope is 'Process'",
+        );
+        return;
     }
 
     # get database object
@@ -139,11 +149,11 @@ sub ActivityAdd {
     # sql
     return if !$DBObject->Do(
         SQL => '
-            INSERT INTO pm_activity (entity_id, name, config, create_time, create_by, change_time,
+            INSERT INTO pm_activity (entity_id, name, config, scope, parent, create_time, create_by, change_time,
                 change_by)
-            VALUES (?, ?, ?, current_timestamp, ?, current_timestamp, ?)',
+            VALUES (?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp, ?)',
         Bind => [
-            \$Param{EntityID}, \$Param{Name}, \$Config, \$Param{UserID}, \$Param{UserID},
+            \$Param{EntityID}, \$Param{Name}, \$Config, \$Param{Scope}, \$Param{ParentID}, \$Param{UserID}, \$Param{UserID},
         ],
     );
 
@@ -236,6 +246,8 @@ Returns:
         EntityID       => 'A1',
         Name           => 'some name',
         Config         => $ConfigHashRef,
+        Scope          => 'Global',
+        ParentID       => undef,
         ActiviyDialogs => ['AD1','AD2','AD3'],
         CreateTime     => '2012-07-04 15:08:00',
         ChangeTime     => '2012-07-04 15:08:00',
@@ -246,6 +258,8 @@ Returns:
         EntityID     => 'P1',
         Name         => 'some name',
         Config       => $ConfigHashRef,
+        Scope        => 'Process',
+        ParentID     => 456,
         ActivityDialogs => {
             'AD1' => 'ActivityDialog1',
             'AD2' => 'ActivityDialog2',
@@ -309,7 +323,7 @@ sub ActivityGet {
     if ( $Param{ID} ) {
         return if !$DBObject->Prepare(
             SQL => '
-                SELECT id, entity_id, name, config, create_time, change_time
+                SELECT id, entity_id, name, config, scope, parent, create_time, change_time
                 FROM pm_activity
                 WHERE id = ?',
             Bind  => [ \$Param{ID} ],
@@ -319,7 +333,7 @@ sub ActivityGet {
     else {
         return if !$DBObject->Prepare(
             SQL => '
-                SELECT id, entity_id, name, config, create_time, change_time
+                SELECT id, entity_id, name, config, scope, parent, create_time, change_time
                 FROM pm_activity
                 WHERE entity_id = ?',
             Bind  => [ \$Param{EntityID} ],
@@ -340,8 +354,10 @@ sub ActivityGet {
             EntityID   => $Data[1],
             Name       => $Data[2],
             Config     => $Config,
-            CreateTime => $Data[4],
-            ChangeTime => $Data[5],
+            Scope      => $Data[4],
+            ParentID   => $Data[5],
+            CreateTime => $Data[6],
+            ChangeTime => $Data[7],
         );
     }
 
@@ -401,6 +417,8 @@ returns 1 if success or undef otherwise
         Name        => 'NameOfProcess', # mandatory
         Config      => $ConfigHashRef,  # mandatory, process configuration to be stored in YAML
                                         #   format
+        Scope       => 'Global'         # mandatory, 'Global or 'Process'
+        ParentID    => 456              # mandatory if Scope is 'Process'
         UserID      => 123,             # mandatory
     );
 
@@ -410,7 +428,7 @@ sub ActivityUpdate {
     my ( $Self, %Param ) = @_;
 
     # check needed stuff
-    for my $Key (qw(ID EntityID Name Config UserID)) {
+    for my $Key (qw(ID EntityID Name Config Scope UserID)) {
         if ( !$Param{$Key} ) {
             $Kernel::OM->Get('Kernel::System::Log')->Log(
                 Priority => 'error',
@@ -418,6 +436,13 @@ sub ActivityUpdate {
             );
             return;
         }
+    }
+    if ( $Param{Scope} eq 'Global' && !$Param{ParentID} ) {
+        $Kernel::OM->Get('Kernel::System::Log')->Log(
+            Priority => 'error',
+            Message  => "Need ParentID when scope is 'Global'",
+        );
+        return;
     }
 
     # get database object
@@ -465,7 +490,7 @@ sub ActivityUpdate {
     # check if need to update db
     return if !$DBObject->Prepare(
         SQL => '
-            SELECT entity_id, name, config
+            SELECT entity_id, name, config, scope, parent
             FROM pm_activity
             WHERE id = ?',
         Bind  => [ \$Param{ID} ],
@@ -475,27 +500,33 @@ sub ActivityUpdate {
     my $CurrentEntityID;
     my $CurrentName;
     my $CurrentConfig;
+    my $CurrentScope;
+    my $CurrentParentID;
     while ( my @Data = $DBObject->FetchrowArray() ) {
         $CurrentEntityID = $Data[0];
         $CurrentName     = $Data[1];
         $CurrentConfig   = $Data[2];
+        $CurrentScope    = $Data[3];
+        $CurrentParentID = $Data[4];
     }
 
     if ($CurrentEntityID) {
 
         return 1 if $CurrentEntityID eq $Param{EntityID}
             && $CurrentName eq $Param{Name}
-            && $CurrentConfig eq $Config;
+            && $CurrentConfig eq $Config
+            && $CurrentScope eq $Param{Scope}
+            && $CurrentParentID eq $Param{ParentID};
     }
 
     # sql
     return if !$DBObject->Do(
         SQL => '
             UPDATE pm_activity
-            SET entity_id = ?, name = ?,  config = ?, change_time = current_timestamp, change_by = ?
+            SET entity_id = ?, name = ?,  config = ?, scope = ?, parent = ?, change_time = current_timestamp, change_by = ?
             WHERE id = ?',
         Bind => [
-            \$Param{EntityID}, \$Param{Name}, \$Config, \$Param{UserID},
+            \$Param{EntityID}, \$Param{Name}, \$Config, \$Param{Scope}, \$Param{ParentID}, \$Param{UserID},
             \$Param{ID},
         ],
     );

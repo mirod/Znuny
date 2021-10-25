@@ -991,6 +991,8 @@ sub Run {
         $ProcessData->{Config}->{Path}                = $GetParam->{Path};
         $ProcessData->{Config}->{StartActivity}       = $GetParam->{StartActivity};
         $ProcessData->{Config}->{StartActivityDialog} = $GetParam->{StartActivityDialog};
+        $ProcessData->{ParentID}                      = $GetParam->{ParentID};
+        $ProcessData->{ProcessID}                     = $GetParam->{ProcessID};
 
         # check required parameters
         my %Error;
@@ -1849,7 +1851,7 @@ sub _GetParams {
 
     # get parameters from web browser
     for my $ParamName (
-        qw( Name EntityID ProcessLayout Path StartActivity StartActivityDialog Description StateEntityID )
+        qw( Name EntityID ProcessLayout Path StartActivity StartActivityDialog Description StateEntityID ProcessID )
         )
     {
         $GetParam->{$ParamName} = $Kernel::OM->Get('Kernel::System::Web::Request')->GetParam( Param => $ParamName )

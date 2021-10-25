@@ -56,8 +56,21 @@
                                 <div id="NameError" class="TooltipErrorMessage">
                                     <p>[% Translate("This field is required.") | html %]</p>
                                 </div>
-                                <div id="NameServerError" class="TooltipErrorMessage">
+                            </div>
+                            <div class="Clear"></div>
+                            <label class="Mandatory" for="ScopeSelection"><span class="Marker">*</span> [% Translate("Scope") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ScopeSelection %]
+                                <div id="ScopeError" class="TooltipErrorMessage">
                                     <p>[% Translate("This field is required.") | html %]</p>
+                                </div>
+                            </div>
+                            <div class="Clear"></div>
+                            <label class="Mandatory" for="ParentID"><span class="Marker">*</span> [% Translate("Parent Process") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ParentSelection %]
+                                <div id="ParentError" class="TooltipErrorMessage">
+                                    <p>[% Translate("This field is required for activities with a "Current Process" scope.") | html %]</p>
                                 </div>
                             </div>
                             <div class="Clear"></div>
@@ -80,7 +93,16 @@
                             </p>
                         </div>
                         <div class="Size1of2">
-                            <input type="text" id="FilterAvailableActivityDialogs" class="W75pc" name="FilterAvailableActivityDialogs" value="" title="[% Translate("Filter available Activity Dialogs") | html %]" placeholder="[% Translate("Filter available Activity Dialogs") | html %]..." />
+                           <a name="ProcessID" id="ProcessID" data-processid="[% Data.ProcessID %]"></a>
+                           <div class="ScopeFilter">Scope:
+                             <select id="TransitionScopeFilter" class="ScopeFilter" data-appliesto="AvailableActivityDialogs">
+                               <option value="Default">Default</option>
+                               <option value="Global">Global</option>
+                               <option value="Process">Process</option>
+                               <option value="All">All (will be removed)</option>
+                              </select>
+                            </div>
+                            <input type="text" id="FilterAvailableActivityDialogs" name="FilterAvailableActivityDialogs" value="" title="[% Translate("Filter available Activity Dialogs") | html %]" placeholder="[% Translate("Filter available Activity Dialogs") | html %]..." />
                             <ul class="Tablelike W90pc SpacingTop">
                                 <li class="Header">
                                     [% Translate("Available Activity Dialogs") | html %]
