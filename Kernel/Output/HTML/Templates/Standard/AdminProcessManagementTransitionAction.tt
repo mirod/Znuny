@@ -68,6 +68,17 @@
                                     <p>[% Translate("This field is required.") | html %]</p>
                                 </div>
                             </div>
+                            <div class="Mandatory" class="Clear"></div>
+                            <label for="Scope"><span class="Marker">*</span> [% Translate("Scope") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ScopeSelection %]
+                            </div>
+                            <div class="Clear"></div>
+
+                            <label class="Mandatory" for="ParentID"><span class="Marker">*</span> [% Translate("Parent Process") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ParentSelection %]
+                            </div>
                             <div class="Clear"></div>
                         </fieldset>
 

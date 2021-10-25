@@ -58,6 +58,8 @@ sub Run {
 
         return $Self->_ShowEdit(
             %Param,
+            ScopeSelection => $Self->_ScopeSelection($LayoutObject),
+            ParentSelection => $Self->_ParentSelection($LayoutObject, $ParamObject->GetParam( Param => 'ProcessID' )),
             Action => 'New',
         );
     }
@@ -80,6 +82,8 @@ sub Run {
         $TransitionActionData->{Name}             = $GetParam->{Name};
         $TransitionActionData->{Config}->{Module} = $GetParam->{Module};
         $TransitionActionData->{Config}->{Config} = $GetParam->{Config};
+        $TransitionActionData->{Scope}    = $GetParam->{Scope};
+        $TransitionActionData->{ParentID} = $GetParam->{ParentID};
 
         # check required parameters
         my %Error;
@@ -87,20 +91,34 @@ sub Run {
 
             # add server error error class
             $Error{NameServerError}        = 'ServerError';
-            $Error{NameServerErrorMessage} = Translatable('This field is required');
+            $Error{NameServerErrorMessage} = Translatable('This field is required a');
         }
 
         if ( !$GetParam->{Module} ) {
 
             # add server error error class
             $Error{ModuleServerError}        = 'ServerError';
-            $Error{ModuleServerErrorMessage} = Translatable('This field is required');
+            $Error{ModuleServerErrorMessage} = Translatable('This field is required b');
         }
 
         if ( !$GetParam->{Config} ) {
             return $LayoutObject->ErrorScreen(
                 Message => Translatable('At least one valid config parameter is required.'),
             );
+        }
+
+        if ( !$GetParam->{Scope} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required c');
+        }
+
+        if ( $GetParam->{Scope} eq 'Process' && !$GetParam->{ParentID} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required d');
         }
 
         # if there is an error return to edit screen
@@ -132,6 +150,8 @@ sub Run {
             Module   => $TransitionActionData->{Module},
             EntityID => $EntityID,
             Config   => $TransitionActionData->{Config},
+            Scope    => $TransitionActionData->{Scope},
+            ParentID => $TransitionActionData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -243,6 +263,9 @@ sub Run {
             UserID => $Self->{UserID},
         );
 
+        my $ScopeSelection = $Self->_ScopeSelection($LayoutObject, $TransitionActionData->{Scope});
+        my $ParentSelection = $Self->_ParentSelection($LayoutObject, $TransitionActionData->{ParentID});
+
         # check for valid TransitionAction data
         if ( !IsHashRefWithData($TransitionActionData) ) {
             return $LayoutObject->ErrorScreen(
@@ -257,6 +280,8 @@ sub Run {
             %Param,
             TransitionActionID   => $TransitionActionID,
             TransitionActionData => $TransitionActionData,
+            ScopeSelection     => $ScopeSelection,
+            ParentSelection    => $ParentSelection,
             Action               => 'Edit',
         );
     }
@@ -280,6 +305,8 @@ sub Run {
         $TransitionActionData->{EntityID}         = $GetParam->{EntityID};
         $TransitionActionData->{Config}->{Module} = $GetParam->{Module};
         $TransitionActionData->{Config}->{Config} = $GetParam->{Config};
+        $TransitionActionData->{Scope}            = $GetParam->{Scope};
+        $TransitionActionData->{ParentID}         = $GetParam->{ParentID};
 
         # check required parameters
         my %Error;
@@ -287,20 +314,34 @@ sub Run {
 
             # add server error error class
             $Error{NameServerError}        = 'ServerError';
-            $Error{NameServerErrorMessage} = Translatable('This field is required');
+            $Error{NameServerErrorMessage} = Translatable('This field is required e');
         }
 
         if ( !$GetParam->{Module} ) {
 
             # add server error error class
             $Error{ModuleServerError}        = 'ServerError';
-            $Error{ModuleServerErrorMessage} = Translatable('This field is required');
+            $Error{ModuleServerErrorMessage} = Translatable('This field is required f');
         }
 
         if ( !$GetParam->{Config} ) {
             return $LayoutObject->ErrorScreen(
                 Message => Translatable('At least one valid config parameter is required.'),
             );
+        }
+
+        if ( !$GetParam->{Scope} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required g');
+        }
+
+        if ( $GetParam->{Scope} eq 'Process' && !$GetParam->{ParentID} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required h');
         }
 
         # if there is an error return to edit screen
@@ -320,6 +361,8 @@ sub Run {
             Name     => $TransitionActionData->{Name},
             Module   => $TransitionActionData->{Module},
             Config   => $TransitionActionData->{Config},
+            Scope    => $TransitionActionData->{Scope},
+            ParentID => $TransitionActionData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -606,7 +649,7 @@ sub _GetParams {
 
     # get parameters from web browser
     for my $ParamName (
-        qw( Name Module EntityID )
+        qw( Name Module EntityID Scope ParentID)
         )
     {
         $GetParam->{$ParamName} = $ParamObject->GetParam( Param => $ParamName ) || '';
@@ -798,4 +841,37 @@ sub _GetDefaultConfigParameters {
     return;
 }
 
+sub _ScopeSelection {
+    my( $Self, $LayoutObject, $CurrentScope ) = @_;
+
+    my $ScopeSelection = $LayoutObject->BuildSelection(
+            Data        => { Global => 'Global', Process => 'Current Process', },
+            Name        => 'Scope',
+            ID          => 'Scope',
+            SelectedID  => ($CurrentScope || 'Global'),
+            Sort        => 'AlphanumericKey', # 'Global' before 'Process'
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ScopeSelection;
+}
+
+sub _ParentSelection {
+    my( $Self, $LayoutObject, $CurrentParentID ) = @_;
+
+    my $ProcessList = $Kernel::OM->Get('Kernel::System::ProcessManagement::DB::Process')->ProcessList(
+        UserID => 1,
+    );
+
+    my $ParentSelection = $LayoutObject->BuildSelection(
+            Data        => $ProcessList,
+            Name        => 'ParentID',
+            ID          => 'ParentID',
+            SelectedID  => $CurrentParentID,
+            Sort        => 'AlphanumericKey',
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ParentSelection;
+}
 1;
