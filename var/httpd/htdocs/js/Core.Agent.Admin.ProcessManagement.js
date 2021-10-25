@@ -1100,6 +1100,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
         TargetNS.AddScopeFilters();
         TargetNS.RunScopeFilters();
 
+        // Adjust vertically the "Assigned..." box
+        TargetNS.AdjustCol2Box();
+
         // Init handling of closing popup with the OS functionality ("X")
         $(window).off("beforeunload.PMPopup").on("beforeunload.PMPopup", function () {
             window.opener.Core.Agent.Admin.ProcessManagement.HandlePopupClose();
@@ -1339,6 +1342,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
             return false;
         });
 
+        // Adjust vertically the "Assigned..." box
+        TargetNS.AdjustCol2Box();
+
         // Init handling of closing popup with the OS functionality ("X")
         $(window).off("beforeunload.PMPopup").on("beforeunload.PMPopup", function () {
             window.opener.Core.Agent.Admin.ProcessManagement.HandlePopupClose();
@@ -1431,6 +1437,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
             Form.submit();
         });
 
+        // Adjust vertically the "Assigned..." box
+        TargetNS.AdjustCol2Box();
+
         // Init handling of closing popup with the OS functionality ("X")
         $(window).off("beforeunload.PMPopup").on("beforeunload.PMPopup", function () {
             window.opener.Core.Agent.Admin.ProcessManagement.HandlePopupClose();
@@ -1497,6 +1506,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
 
             Form.submit();
         });
+
+        // Adjust vertically the "Assigned..." box
+        TargetNS.AdjustCol2Box();
 
         // Init handling of closing popup with the OS functionality ("X")
         $(window).off("beforeunload.PMPopup").on("beforeunload.PMPopup", function () {
@@ -1961,6 +1973,25 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
               }
           });
      };
+
+    /**
+     * @private
+     * @name AdjustCol2Box
+     * @memberof Core.Agent.Admin.ProcessManagement
+     * @function
+     * @description
+     *     moves down the box on the right in the process management item creation popups
+     */
+    TargetNS.AdjustCol2Box = function() {
+        $('div.Size1of2:nth-child(3)').each( function() {
+        var filter_height = parseInt($(this).closest('div.Content').find( 'div.Size1of2').first().find('span.TableFilterContainer input').outerHeight(true));
+        var scope_height = parseInt($(this).closest('div.Content').find( 'div.Size1of2').first().find('div.ScopeFilter').outerHeight(true));
+        var current_margin = parseInt($(this).css('margin-top'));
+        var new_margin = scope_height + filter_height + current_margin;
+        $(this).css('margin-top', new_margin + 'px')
+        });
+    };
+
 
     Core.Init.RegisterNamespace(TargetNS, 'APP_MODULE');
 
