@@ -113,6 +113,18 @@
                             </div>
                             <div class="Clear"></div>
 
+                            <label for="Scope">[% Translate("Scope") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ScopeSelection %]
+                            </div>
+                            <div class="Clear"></div>
+
+                            <label for="ParentID">[% Translate("Parent Process") | html %]:</label>
+                            <div class="Field">
+                                [% Data.ParentSelection %]
+                            </div>
+                            <div class="Clear"></div>
+
                             <label for="SubmitAdviceText">[% Translate("Submit Advice Text") | html %]:</label>
                             <div class="Field">
                                 <input type="text" name="SubmitAdviceText" id="SubmitAdviceText" value="[% Data.SubmitAdviceText | html %]" class="W50pc" maxlength="70"/>

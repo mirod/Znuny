@@ -107,6 +107,8 @@ sub Run {
 
         return $Self->_ShowEdit(
             %Param,
+            ScopeSelection => $Self->_ScopeSelection($LayoutObject),
+            ParentSelection => $Self->_ParentSelection($LayoutObject, $ParamObject->GetParam( Param => 'ProcessID' ) || $ParamObject->GetParam( Param => 'ID' )),
             Action => 'New',
         );
     }
@@ -137,6 +139,8 @@ sub Run {
         $ActivityDialogData->{Config}->{SubmitButtonText} = $GetParam->{SubmitButtonText};
         $ActivityDialogData->{Config}->{Fields}           = {};
         $ActivityDialogData->{Config}->{FieldOrder}       = [];
+        $ActivityDialogData->{Scope}                      = $GetParam->{Scope};
+        $ActivityDialogData->{ParentID}                   = $GetParam->{ParentID};
 
         if ( IsArrayRefWithData( $GetParam->{Fields} ) ) {
 
@@ -213,6 +217,20 @@ sub Run {
             $Error{RequiredLockServerError} = 'ServerError';
         }
 
+        if ( !$GetParam->{Scope} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required');
+        }
+
+        if ( $GetParam->{Scope} eq 'Process' && !$GetParam->{ParentID} ) {
+
+            # add server error error class
+            $Error{NameServerError}        = 'ServerError';
+            $Error{NameServerErrorMessage} = Translatable('This field is required');
+        }
+
         # if there is an error return to edit screen
         if ( IsHashRefWithData( \%Error ) ) {
             return $Self->_ShowEdit(
@@ -241,6 +259,8 @@ sub Run {
             Name     => $ActivityDialogData->{Name},
             EntityID => $EntityID,
             Config   => $ActivityDialogData->{Config},
+            Scope    => $ActivityDialogData->{Scope},
+            ParentID => $ActivityDialogData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -348,6 +368,9 @@ sub Run {
             UserID => $Self->{UserID},
         );
 
+        my $ScopeSelection = $Self->_ScopeSelection($LayoutObject, $ActivityDialogData->{Scope});
+        my $ParentSelection = $Self->_ParentSelection($LayoutObject, $ActivityDialogData->{ParentID});
+
         # check for valid Activity Dialog data
         if ( !IsHashRefWithData($ActivityDialogData) ) {
             return $LayoutObject->ErrorScreen(
@@ -362,6 +385,8 @@ sub Run {
             %Param,
             ActivityDialogID   => $ActivityDialogID,
             ActivityDialogData => $ActivityDialogData,
+            ScopeSelection     => $ScopeSelection,
+            ParentSelection    => $ParentSelection,
             Action             => 'Edit',
         );
     }
@@ -392,6 +417,8 @@ sub Run {
         $ActivityDialogData->{Config}->{SubmitButtonText} = $GetParam->{SubmitButtonText};
         $ActivityDialogData->{Config}->{Fields}           = {};
         $ActivityDialogData->{Config}->{FieldOrder}       = [];
+        $ActivityDialogData->{Scope}                      = $GetParam->{Scope};
+        $ActivityDialogData->{ParentID}                   = $GetParam->{ParentID};
 
         if ( IsArrayRefWithData( $GetParam->{Fields} ) ) {
 
@@ -493,6 +520,8 @@ sub Run {
             Name     => $ActivityDialogData->{Name},
             EntityID => $ActivityDialogData->{EntityID},
             Config   => $ActivityDialogData->{Config},
+            Scope    => $ActivityDialogData->{Scope},
+            ParentID => $ActivityDialogData->{ParentID},
             UserID   => $Self->{UserID},
         );
 
@@ -959,7 +988,7 @@ sub _GetParams {
 
     # get parameters from web browser
     for my $ParamName (
-        qw( Name EntityID Interface DescriptionShort DescriptionLong Permission RequiredLock SubmitAdviceText
+        qw( Name EntityID Interface DescriptionShort DescriptionLong Permission RequiredLock Scope ParentID SubmitAdviceText
         SubmitButtonText )
         )
     {
@@ -1115,6 +1144,40 @@ sub _CheckActivityDialogUsage {
     }
 
     return \@Usage;
+}
+
+sub _ScopeSelection {
+    my( $Self, $LayoutObject, $CurrentScope ) = @_;
+
+    my $ScopeSelection = $LayoutObject->BuildSelection(
+            Data       => { Global => 'Global', Process => 'Current Process', },
+            Name       => 'Scope',
+            ID         => 'Scope',
+            SelectedID => ($CurrentScope || 'Global'),
+            Sort        => 'AlphanumericKey', # 'Global' before 'Process'
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ScopeSelection;
+}
+
+sub _ParentSelection {
+    my( $Self, $LayoutObject, $CurrentParentID ) = @_;
+
+    my $ProcessList = $Kernel::OM->Get('Kernel::System::ProcessManagement::DB::Process')->ProcessList(
+        UserID => 1,
+    );
+
+    my $ParentSelection = $LayoutObject->BuildSelection(
+            Data       => $ProcessList,
+            Name       => 'ParentID',
+            ID         => 'ParentID',
+            SelectedID => $CurrentParentID,
+            Sort        => 'AlphanumericKey',
+            Translation => 1,
+            Class       => 'Modernize W50pc ',
+        );
+    return $ParentSelection;
 }
 
 1;
