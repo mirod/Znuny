@@ -1437,6 +1437,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
             Form.submit();
         });
 
+        // Init handling of scope change: when scope is global the parent field cannot be edited any more
+        TargetNS.InitScopeSwitchesParent();
+
         // Adjust vertically the "Assigned..." box
         TargetNS.AdjustCol2Box();
 
@@ -1506,6 +1509,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
 
             Form.submit();
         });
+
+        // Init handling of scope change: when scope is global the parent field cannot be edited any more
+        TargetNS.InitScopeSwitchesParent();
 
         // Adjust vertically the "Assigned..." box
         TargetNS.AdjustCol2Box();
@@ -1867,40 +1873,19 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
         // the ParentID element will be shown/hidden depending on the scope
         var Parent = document.querySelector('#ParentID');
         if( ! Parent ) { return; }
-        var ParentField = Parent.parentNode;
-
-        // when scope is global the current value of the parent will be displayed greyed out
-        var CurrentParent = '';
-        if( Parent.previousSibling ) {
-            CurrentParent = Parent.previousSibling.textContent;
-        }
 
         // the current scope is used to determine which version of the parent is shown (static or editable)
         var Scope = document.querySelector('#Scope');
         if( ! Scope || ! Scope.previousSibling ) { return; }
         var CurrentScope = Scope.previousSibling.textContent;
 
-        // #GreyedOutParent is the static version of the parent
-        var GreyedOutParent = document.querySelector('#GreyedOutParent');
+        // show/hide the 3 items on the Parent Process line depending on the current scope
         if( CurrentScope == 'Global' ) {
-            // Global: show static parent, hide parent input box
-            if( ! GreyedOutParent ) {
-                // generate #GreyedOutParent if needed
-                GreyedOutParent = document.createElement('div');
-                GreyedOutParent.setAttribute( 'id', 'GreyedOutParent' );
-                GreyedOutParent.classList.add('Field');
-                GreyedOutParent.classList.add('GreyedOutParent');
-                ParentField.after( GreyedOutParent );
-            }
-            GreyedOutParent.innerHTML = CurrentParent;
-            GreyedOutParent.style.display = 'block';
-            ParentField.style.display = 'none';
+            // hide the 3 items on the Parent Process line
+            $('label[for="ParentID"]').hide().next().hide().next().hide();
         } else {
-            // Process: show parent input box, hide static parent
-            ParentField.style.display = 'block';
-            if( GreyedOutParent ) {
-                GreyedOutParent.style.display = 'none';
-            }
+            // show the 3 items on the Parent Process line
+            $('label[for="ParentID"]').show().next().show().next().show();
         }
     };
 
