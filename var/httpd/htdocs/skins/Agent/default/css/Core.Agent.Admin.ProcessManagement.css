@@ -140,8 +140,12 @@ ul#ProcessElements li.AccordionElement div.Content {
     display: none;
 }
 
+.TableFilterContainer input.ProcessElementFilter.WithScope {
+	width: 190px;
+}
+
 ul#ProcessElements li.AccordionElement div.Content .ProcessElementFilter {
-    width: 228px;
+    width: 190px;
     margin-top: 1px;
     margin-bottom: -5px;
 }
@@ -214,7 +218,7 @@ ul#ProcessElements li.AccordionElement div.Content .ProcessElementButton {
 }
 
 .ScopeFilter {
-    margin-bottom: .5em;
+    margin-left: 1em;
 }
 
 /**
@@ -721,14 +725,9 @@ div.AJAXWaiting {
  * @subsubsection     ActivityDialog
  */
 
-.GreyedOutParent {
-    color: gray;
-    font-style: italic;
-}
-
-/* otherwise TableFilterContainer input is set to 100% width */
+/* input width is set to 80% to leave space for the "global" checkbox */
 #FilterAvailableActivityDialogs {
-    width: 90%;
+    width: 80%;
 }
 
 /**

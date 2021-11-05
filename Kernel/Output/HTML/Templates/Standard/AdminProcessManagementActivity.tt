@@ -95,15 +95,8 @@
                         </div>
                         <div class="Size1of2">
                            <a name="ProcessID" id="ProcessID" data-processid="[% Data.ProcessID %]"></a>
-                           <div class="ScopeFilter">Scope:
-                             <select id="TransitionScopeFilter" class="ScopeFilter" data-appliesto="AvailableActivityDialogs">
-                               <option value="Default">Default</option>
-                               <option value="Global">Global</option>
-                               <option value="Process">Process</option>
-                               <option value="All">All (will be removed)</option>
-                              </select>
-                            </div>
-                            <input type="text" id="FilterAvailableActivityDialogs" name="FilterAvailableActivityDialogs" value="" title="[% Translate("Filter available Activity Dialogs") | html %]" placeholder="[% Translate("Filter available Activity Dialogs") | html %]..." />
+                            <input type="text" id="FilterAvailableActivityDialogs" class="FilterAvailableProcessItem" name="FilterAvailableActivityDialogs" value="" title="[% Translate("Filter available Activity Dialogs") | html %]" placeholder="[% Translate("Filter available Activity Dialogs") | html %]..." />
+                            <input type="checkbox"  id="TransitionScopeFilter" class="ScopeFilter" data-appliesto="AvailableActivityDialogs" name="TransitionScopeFilter"></input><i class="fa fa-globe" title="[% Translate('Show Global Activity Dialogs') %]"></i>
                             <ul class="Tablelike W90pc SpacingTop">
                                 <li class="Header">
                                     [% Translate("Available Activity Dialogs") | html %]

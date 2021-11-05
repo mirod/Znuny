@@ -858,7 +858,6 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
 
             // Add Scope Filters in accordion
             TargetNS.AddScopeFilters();
-            TargetNS.RunScopeFilters();
 
         }, 'html');
     };
@@ -1050,8 +1049,8 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
             return false;
         });
 
+        // Add Scope Filters for Process Items
         TargetNS.AddScopeFilters();
-        TargetNS.RunScopeFilters();
 
         // Init Diagram Canvas
         TargetNS.Canvas.Init();
@@ -1098,7 +1097,6 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
 
         // Add Scope Filters for Activity Dialogs
         TargetNS.AddScopeFilters();
-        TargetNS.RunScopeFilters();
 
         // Adjust vertically the "Assigned..." box
         TargetNS.AdjustCol2Box();
@@ -1898,66 +1896,43 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
      *     add filter on scope to .ScopeFilter elements and to text filter keypress handlers
      */
     TargetNS.AddScopeFilters = function() {
-        $('select.ScopeFilter').change( function(e) {
-            var AppliesTo = $(this).data( 'appliesto');
-            var Scope = $(this).val() || 'Default';
-            TargetNS.ScopeFilter(AppliesTo, Scope);
-        });
-        // add handler to text filtering, to reapply scope filtering after each change
-        $('select.ScopeFilter').each( function() {
-            var AppliesTo = $(this).data( 'appliesto');
-            var SelectID = $(this).attr('id');
-            var TextFilter = $('#' + AppliesTo).closest('div').find('input.ProcessElementFilter');
-            // re-run the filter 300 ms after a keypress, after text filtering has done its thing
-            TextFilter.keyup( function(e) {
-                setTimeout(function() { TargetNS.ScopeFilter( AppliesTo, $('#' + SelectID).val() || 'Default') }, 300);
+        // foreach list that needs to be filtered
+        $('input.ScopeFilter').each( function() {
+            var ProcessID    = $('#ProcessID').data('processid');
+            var AppliesTo    = $(this).data('appliesto');
+            var HiddenListID = AppliesTo + 'Hidden';
+            $('#' + AppliesTo).after('<ul id="' + HiddenListID + '" style="display:none;"></ul>');
+            var HiddenList   = $('#' + HiddenListID);
+            $( '#' + AppliesTo + ' li').each( function() {
+                var el = $(this);
+                var Scope = el.data('scope');
+                if(Scope == 'Process' && el.data('parentid') == ProcessID) {
+                    // keep items that are in the right process
+                    el.addClass('InProcess');
+                } else if(Scope == 'Global') {
+                    // move global ones to a hidden list (and mark them as global)
+                    el.addClass('Global').detach().appendTo(HiddenList);
+                    el.find('div.AsBlock').append('<span title="Global" class="GlobalScope"> *</span>')
+                } else {
+                    // remove the others (process-scoped to a different process)
+                    el.remove();
+                }
+            });
+
+            // when clicking on the checkbox
+            $(this).change( function(e) {
+                var AppliesTo    = $(e.target).data('appliesto');
+                var HiddenListID = AppliesTo + 'Hidden';
+                if(this.checked) {
+                    // if checked move global items from the hidden list to the main one
+                    $('#' + HiddenListID + ' li').detach().appendTo('#' + AppliesTo);
+                } else {
+                    // if unchecked move them back to the hidden list
+                    $('#' + AppliesTo + ' li.Global').detach().appendTo(HiddenList);
+               }
             });
         });
-    }
-
-
-    /**
-     * @private
-     * @name RunScopeFilters
-     * @memberof Core.Agent.Admin.ProcessManagement
-     * @function
-     * @description
-     *     run scope filters
-     */
-    TargetNS.RunScopeFilters = function() {
-        // run the filter (after a 300ms delay so the text filtering code has had time to do its thing)
-        $('select.ScopeFilter').each( function() {
-            var el=$(this);
-                var AppliesTo = el.data('appliesto');
-                var SelectID = el.attr('id');
-                setTimeout(function() { TargetNS.ScopeFilter( AppliesTo, $('#' + SelectID).val() || 'Default') }, 300);
-        });
     };
-
-
-
-    /**
-     * @private
-     * @name ScopeFilter
-     * @memberof Core.Agent.Admin.ProcessManagement
-     * @function
-     * @description
-     *     filter rows based on the scope setting
-     */
-     TargetNS.ScopeFilter = function(AppliesTo, Scope) {
-        var ProcessID = $('#ProcessID').data('processid');
-         $('#' + AppliesTo + ' li').each( function() {
-              if( (Scope == 'All')
-                  || (Scope == 'Default' && ( $(this).data('scope') == 'Global' ||  ($(this).data('scope') == 'Process' && $(this).data('parentid') == ProcessID)))
-                  || (Scope == 'Global' && $(this).data('scope') == 'Global')
-                  || (Scope == 'Process' && $(this).data('scope') == 'Process' && $(this).data('parentid') == ProcessID)
-                ) {
-                  $(this).show().addClass('InScope').removeClass('NotInScope');
-              } else {
-                  $(this).hide().removeClass('InScope').addClass('NotInScope');
-              }
-          });
-     };
 
     /**
      * @private
