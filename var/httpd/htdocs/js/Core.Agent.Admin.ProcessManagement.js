@@ -1340,6 +1340,9 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
             return false;
         });
 
+        // Init handling of scope change: when scope is global the parent field cannot be edited any more
+        TargetNS.InitScopeSwitchesParent();
+
         // Adjust vertically the "Assigned..." box
         TargetNS.AdjustCol2Box();
 
