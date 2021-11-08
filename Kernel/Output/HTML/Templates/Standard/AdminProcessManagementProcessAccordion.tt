@@ -54,7 +54,7 @@
                 </li>
 [% RenderBlockEnd("ActivityDialogNoDataRow") %]
             </ul>
-            <a href="[% Env("Baselink") %]Action=AdminProcessManagementActivityDialog;Subaction=ActivityDialogNew;" class="CallForAction AsPopup PopupType_ActivityDialog Fullsize Center ProcessElementButton"><span><i class="fa fa-plus-square"></i>[% Translate("Create New Activity Dialog") | html %]</span></a>
+            <a href="[% Env("Baselink") %]Action=AdminProcessManagementActivityDialog;Subaction=ActivityDialogNew;ProcessID=[% ProcessID %];" class="CallForAction AsPopup PopupType_ActivityDialog Fullsize Center ProcessElementButton"><span><i class="fa fa-plus-square"></i>[% Translate("Create New Activity Dialog") | html %]</span></a>
         </div>
     </li>
     <li class="AccordionElement">
