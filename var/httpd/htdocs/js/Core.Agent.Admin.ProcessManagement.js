@@ -1929,7 +1929,7 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
                 var HiddenListID = AppliesTo + 'Hidden';
                 if(this.checked) {
                     // if checked move global items from the hidden list to the main one
-                    $('#' + HiddenListID + ' li').detach().appendTo('#' + AppliesTo);
+                    $('#' + HiddenListID + ' li').detach().prependTo('#' + AppliesTo);
                 } else {
                     // if unchecked move them back to the hidden list
                     $('#' + AppliesTo + ' li.Global').detach().appendTo(HiddenList);
