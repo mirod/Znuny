@@ -12,7 +12,7 @@
         <h2><a href="#" class="AsBlock"><span><i class="fa fa-caret-right"></i><i class="fa fa-caret-down"></i></span>[% Translate("Activities") | html %]</a></h2>
         <div class="Content">
             <input type="text" id="ActivityFilter" class="ProcessElementFilter WithScope" placeholder="[% Translate("Filter Activities...") | html %]" />
-            <input type="checkbox"  id="ActivityScopeFilter" class="ScopeFilter" title="[% Translate('Show Global Activities') %] data-appliesto="Activities" name="ActivityScopeFilter"></input><i class="fa fa-globe" title="[% Translate('Show Global Activities') %]"></i>
+            <input type="checkbox"  id="ActivityScopeFilter" class="ScopeFilter" title="[% Translate('Show Global Activities') %]" data-appliesto="Activities" name="ActivityScopeFilter"></input><i class="fa fa-globe" title="[% Translate('Show Global Activities') %]"></i>
             <ul class="Tablelike" id="Activities">
 [% RenderBlockStart("ActivityRow") %]
                 <li class="OneRow" data-entity="[% Data.EntityID | html %]" data-id="[% Data.ID | html %]" data-scope="[% Data.Scope %]" data-parentid="[% Data.ParentID %]">
