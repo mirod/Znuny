@@ -1904,9 +1904,15 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
         $('input.ScopeFilter').each( function() {
             var ProcessID    = $('#ProcessID').data('processid');
             var AppliesTo    = $(this).data('appliesto');
-            var HiddenListID = AppliesTo + 'Hidden';
-            $('#' + AppliesTo).after('<ul id="' + HiddenListID + '" style="display:none;"></ul>');
-            var HiddenList   = $('#' + HiddenListID);
+
+            var GlobalListID = AppliesTo + 'Global';
+            $('#' + AppliesTo).before('<ul id="' + GlobalListID + '" style="display:none;"></ul>');
+            var GlobalList   = $('#' + GlobalListID);
+
+            var AllListID    = AppliesTo + 'All';
+            $('#' + AppliesTo).before('<ul id="' + AllListID + '" style="display:none;"></ul>');
+            var AllList   = $('#' + AllListID);
+
             $( '#' + AppliesTo + ' li').each( function() {
                 var el = $(this);
                 var Scope = el.data('scope');
@@ -1915,24 +1921,45 @@ Core.Agent.Admin.ProcessManagement = (function (TargetNS) {
                     el.addClass('InProcess');
                 } else if(Scope == 'Global') {
                     // move global ones to a hidden list (and mark them as global)
-                    el.addClass('Global').detach().appendTo(HiddenList);
+                    el.addClass('Global').detach().appendTo(GlobalList);
                     el.find('div.AsBlock').append('<span title="Global" class="GlobalScope"> *</span>')
                 } else {
-                    // remove the others (process-scoped to a different process)
-                    el.remove();
+                    // move the others to a the all list
+                    el.addClass('All').detach().appendTo(AllList);
+                    el.find('div.AsBlock').append('<span title="Global" class="GlobalScope"> -</span>')
                 }
             });
 
             // when clicking on the checkbox
             $(this).change( function(e) {
                 var AppliesTo    = $(e.target).data('appliesto');
-                var HiddenListID = AppliesTo + 'Hidden';
+                var GlobalListID = AppliesTo + 'Global';
                 if(this.checked) {
                     // if checked move global items from the hidden list to the main one
-                    $('#' + HiddenListID + ' li').detach().prependTo('#' + AppliesTo);
+                    $('#' + GlobalListID + ' li').detach().prependTo('#' + AppliesTo);
                 } else {
                     // if unchecked move them back to the hidden list
-                    $('#' + AppliesTo + ' li.Global').detach().appendTo(HiddenList);
+                    $('#' + AppliesTo + ' li.Global').detach().appendTo(GlobalList);
+               }
+            });
+
+            // double clicking on the globe icon shows _all_ of the process items
+            $(this).next('i').data('appliesto', AppliesTo)
+            $(this).next('i').dblclick( function(e) {
+                var globe = $(e.target);
+                var AppliesTo    = globe.data('appliesto');
+                var AllListID = AppliesTo + 'All';
+                if( ! globe.hasClass('ShowAll') ) {
+                    // feature available only if show global is already checked
+                    if( globe.prev().prop('checked') == true ) {
+                        // move global items from the hidden list to the main one
+                        $('#' + AllListID + ' li').detach().prependTo('#' + AppliesTo);
+                        globe.addClass('ShowAll').data('originalcolor', globe.css('color')).css('color', 'red');
+                    }
+                } else {
+                    // move them back to the hidden list
+                    $('#' + AppliesTo + ' li.All').detach().appendTo(AllList);
+                    globe.removeClass('ShowAll').css('color', globe.data('originalcolor'));
                }
             });
         });
