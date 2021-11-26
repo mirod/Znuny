@@ -49,6 +49,7 @@
                 <h2 id="LogTitle">[% Translate("Recent Log Entries") | html %]</h2>
             </div>
             <div class="Content">
+                <a id="LastMessage" name="LastMessage" data-lastmessage="[% Data.LastMessage %]"></a>
                 <table class="DataTable" id="LogEntries">
                     <thead>
                         <tr>
@@ -60,7 +61,7 @@
                     </thead>
                     <tbody>
 [% RenderBlockStart("Row") %]
-                        <tr class="[% Data.ErrorClass | html %]">
+                        <tr class="[% Data.ErrorClass | html %]" data-logId="[% Data.ID %]">
                             <td>[% Data.Time | html %]</td>
                             <td>[% Data.Priority | html %]</td>
                             <td>[% Data.Facility | html %]</td>
