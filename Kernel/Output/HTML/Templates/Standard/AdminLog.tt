@@ -46,7 +46,7 @@
 
         <div class="WidgetSimple">
             <div class="Header">
-                <h2>[% Translate("Recent Log Entries") | html %]</h2>
+                <h2 id="LogTitle">[% Translate("Recent Log Entries") | html %]</h2>
             </div>
             <div class="Content">
                 <table class="DataTable" id="LogEntries">

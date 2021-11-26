@@ -1,0 +1,5 @@
+#!/bin/sh
+kill `lsof -i :8200 | perl -n -E'if( m{twiggy\s+(\d+)}i) { print $1, " "; }'`
+#plackup --server Starman --port 8200 --pid bin/starman.pid -E development -r -R lib -R /home/mrodrigu/znuny/gh/Znuny  bin/app.psgi 
+export PERL5LIB='lib:/home/mrodrigu/znuny/gh/Znuny'
+start_server --port 8200 -- plackup --server Twiggy bin/app.psgi

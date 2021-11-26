@@ -1,0 +1,14 @@
+appname: "OTRS::LiveLog"
+charset: "UTF-8"
+logger: "console"
+warnings: 1
+show_errors: 1
+
+plugins:
+    WebSocket:
+        # default values
+        serializer:   1
+        utf8:         1
+        allow_nonref: 0
+        login: 0
+        mount_path: /ws
