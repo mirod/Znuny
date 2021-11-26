@@ -1,0 +1,28 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite -signatures;
+
+use POSIX 'strftime';
+
+our $msg = "message00001";
+
+websocket '/ws/log' => sub ($c) {
+    $c->inactivity_timeout(300);
+    $c->on(json => sub ($c, $hash) {
+        if( $hash->{action} eq 'more' ) {
+            $c->send({json => messages()});
+        }
+  });
+};
+
+app->start;
+
+sub messages () {
+    my @messages = map { message($msg++) } (0..int(rand(3)));
+    return \@messages;
+}
+
+sub message ($msg) {
+    my $type = (qw(Error Warning Notice Confirmation))[int rand(4)];
+   return { errorClass => $type, time => strftime( "%c", localtime()), priority => lc($type), facility => 'log-server', message => $msg };
+}
+
