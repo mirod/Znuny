@@ -61,7 +61,7 @@
                     </thead>
                     <tbody>
 [% RenderBlockStart("Row") %]
-                        <tr class="[% Data.ErrorClass | html %]" data-logId="[% Data.ID %]">
+                        <tr class="[% Data.ErrorClass | html %]">
                             <td>[% Data.Time | html %]</td>
                             <td>[% Data.Priority | html %]</td>
                             <td>[% Data.Facility | html %]</td>

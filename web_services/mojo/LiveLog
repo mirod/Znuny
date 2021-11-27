@@ -1,7 +1,10 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite -signatures;
 
-use POSIX 'strftime';
+use Kernel::System::Log;
+use Kernel::System::ObjectManager;
+use Digest::MD5 qw(md5_hex);
+
 
 our $msg = "message00001";
 
@@ -9,20 +12,72 @@ websocket '/ws/log' => sub ($c) {
     $c->inactivity_timeout(300);
     $c->on(json => sub ($c, $hash) {
         if( $hash->{action} eq 'more' ) {
-            $c->send({json => messages()});
+            $c->send({json => GetLogSince( $hash->{since})});
         }
   });
 };
 
 app->start;
 
-sub messages () {
-    my @messages = map { message($msg++) } (0..int(rand(3)));
-    return \@messages;
-}
+# based on Kernel::Module::AdminLog::Run
+sub GetLogSince ($since) {
+    local $Kernel::OM = Kernel::System::ObjectManager->new(
+        'Kernel::System::Log' => {
+            LogPrefix => 'InstallScriptX',  # not required, but highly recommend
+        },
+    );
+    my $Log = $Kernel::OM->Get('Kernel::System::Log')->GetLog() || '';
 
-sub message ($msg) {
-    my $type = (qw(Error Warning Notice Confirmation))[int rand(4)];
-   return { errorClass => $type, time => strftime( "%c", localtime()), priority => lc($type), facility => 'log-server', message => $msg };
+    # Split data to lines.
+    my @Messages = split /\n/, $Log;
+
+    # create the data to send back
+    my $data = { LastMessage => 0, LogLines => [] };
+
+    # Create months map.
+    my %MonthMap;
+    my @Months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+    @MonthMap{@Months} = ( 1 .. 12 );
+
+    # Get current user time zone.
+    #my $TimeZone = $Self->{UserTimeZone} || $Kernel::OM->Create('Kernel::System::DateTime')->UserDefaultTimeZoneGet();
+    my $TimeZone = $Kernel::OM->Create('Kernel::System::DateTime')->UserDefaultTimeZoneGet();
+
+    foreach my $Row (@Messages) {
+        my $MD5 = md5_hex($Row);
+        $data->{LastMessage} ||= $MD5;
+        last if $MD5 eq $since ;
+
+        my @Parts = split /;;/, $Row;
+        next if !$Parts[3];
+
+        my $ErrorClass = ( $Parts[1] =~ /error/ ) ? 'Error' : '';
+
+        # Create date and time object from ctime log stamp.
+        my @Time = split ' ', $Parts[0];
+        my $DateTimeObject = $Kernel::OM->Create(
+            'Kernel::System::DateTime',
+            ObjectParams => {
+                String => "$Time[4]-$MonthMap{$Time[1]}-$Time[2] $Time[3]",
+            },
+        );
+
+        # Converts the date and time of this object to the user time zone.
+        $DateTimeObject->ToTimeZone(
+            TimeZone => $TimeZone,
+        );
+
+        # Output time back as ctime string with time zone.
+        $Parts[0] = $DateTimeObject->ToCTimeString() . " ($TimeZone)";
+
+        unshift @{$data->{LogLines}}, {
+                ErrorClass => $ErrorClass,
+                Time       => $Parts[0],
+                Priority   => $Parts[1],
+                Facility   => $Parts[2],
+                Message    => $Parts[3],
+            };
+    }
+    return $data;
 }
 

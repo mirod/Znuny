@@ -42,48 +42,55 @@ Core.Agent.Admin = Core.Agent.Admin || {};
         });
 
         /* add websocket connection status */
-        $('#LogTitle').append( ' <span id="WsStatus" title="Disconnected" style="margin-left:2em">🔴</span> <button id="pauseLog" title="Pause" style="margin-left:2em">⏸️</button><button id="resumeLog" title="Resume"style="display:none;margin-left:2em">▶️</button> <button id="clearLog" title="Clear log output" style="float:right;">🗑️</button>');
+        $('#LogTitle').append( ' <span id="WsStatus" title="Disconnected" style="margin-left:2em">🔴</span>');
 
         var LogSocket = new WebSocket(urlMySocket);
         var more;
         LogSocket.sendJSON = function(message) { return this.send(JSON.stringify(message)) };
         LogSocket.onopen = function(evt) {
-            console.log("opening");
+            // change status to connected
             $('#WsStatus').html('🟢').attr( 'title', 'Connected');
-            more = setInterval( function() { LogSocket.sendJSON( { action: 'more' } ); }, 500 );
+            // add pause/resume and clear buttons
+            $('#LogTitle').append( ' <button id="pauseLog" title="Pause" style="margin-left:2em">⏸️</button><button id="resumeLog" title="Resume"style="display:none;margin-left:2em">▶️</button> <button id="clearLog" title="Clear log output" style="float:right;">🗑️</button>');
+            more = setInterval( function() { LogSocket.sendJSON( { action: 'more', since: $('#LastMessage').data('lastmessage') } ); }, 500 );
+            // set handlers for the buttons
+            $('#pauseLog').click( function() {
+                window.clearInterval(more);
+                $('#pauseLog').hide();
+                $('#resumeLog').show();
+            });
+
+            $('#resumeLog').click( function() {
+                more = setInterval( function() { LogSocket.sendJSON( { action: 'more', since: $('#LastMessage').data('lastmessage') } ); }, 500 );
+                $('#resumeLog').hide();
+                $('#pauseLog').show();
+            });
+
+            $('#clearLog').click( function() {
+                $('#LogEntries tbody tr').remove();
+            });
         };
 
         LogSocket.onmessage = function (evt) {
-            console.log( "Got message " + evt.data );
-            var LogLines = JSON.parse(evt.data);
-            console.log( 'number of lines: ' + LogLines.length );
-            if( LogLines.length ) {
-                LogLines.forEach(item => $('#LogEntries tbody').prepend( '<tr class="' + item.errorClass + '">'
-                                                                        + '<td>' + item.time + '</td>'
-                                                                        + '<td>' + item.priority + '</td>'
-                                                                        + '<td>' + item.facility + '</td>'
-                                                                        + '<td>' + item.message + '</td>'
-                                                                      + '</tr>'));
+            var Data = JSON.parse(evt.data);
+            $('#LastMessage').data('lastmessage', Data.LastMessage);
+            if( Data.LogLines.length ) {
+                Data.LogLines.forEach( (item) => {
+                    var NewRow= '<tr class="' + item.ErrorClass + ' NewRow">'
+                        + '<td>' + item.Time + '</td>'
+                        + '<td>' + item.Priority + '</td>'
+                        + '<td>' + item.Facility + '</td>'
+                        + '<td>' + item.Message + '</td>'
+                        + '</tr>';
+                    $('#LogEntries tbody').prepend(NewRow)
+                });
             }
         };
 
-        LogSocket.onerror = function(error) { console.log('WebSocket Error: ' + error); };
 
-        $('#pauseLog').click( function() {
-            window.clearInterval(more);
-            $('#pauseLog').hide();
-            $('#resumeLog').show();
-        });
+        LogSocket.onerror = function(error) { console.error('WebSocket Error: ', error); };
 
-        $('#resumeLog').click( function() {
-            more = setInterval( function() { LogSocket.sendJSON( { action: 'more' } ); }, 500 );
-            $('#resumeLog').hide();
-            $('#pauseLog').show();
-        });
 
-        $('#clearLog').click( function() {
-            $('#LogEntries tbody tr').remove();
-        });
     };
 
     Core.Init.RegisterNamespace(TargetNS, 'APP_MODULE');

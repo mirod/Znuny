@@ -8,6 +8,7 @@
 # --
 
 package Kernel::Modules::AdminLog;
+use Digest::MD5 qw(md5_hex);
 
 use strict;
 use warnings;
@@ -52,6 +53,8 @@ sub Run {
     # Create table.
     ROW:
     for my $Row (@Messages) {
+
+        $Param{LastMessage} ||= md5_hex($Row);
 
         my @Parts = split /;;/, $Row;
 
