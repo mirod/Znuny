@@ -27,7 +27,7 @@ use lib "$Bin/../../Kernel/cpan-lib";
 use lib "$Bin/../../Custom";
 
 # 0=off;1=on;
-my $Debug = 0;
+my $Debug = 1;
 
 use Kernel::System::Web::InterfaceInstaller();
 use Kernel::System::ObjectManager;

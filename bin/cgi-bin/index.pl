@@ -21,10 +21,12 @@ use strict;
 use warnings;
 
 # use ../../ as lib location
-use FindBin qw($Bin);
-use lib "$Bin/../..";
-use lib "$Bin/../../Kernel/cpan-lib";
-use lib "$Bin/../../Custom";
+BEGIN { @INC=( "/etc/perl", "/usr/local/lib/x86_64-linux-gnu/perl/5.30.0", "/usr/local/share/perl/5.30.0", "/usr/lib/x86_64-linux-gnu/perl5/5.30", "/usr/share/perl5", "/usr/lib/x86_64-linux-gnu/perl/5.30", "/usr/share/perl/5.30", "/usr/local/lib/site_perl", "/usr/lib/x86_64-linux-gnu/perl-base", "/opt/otrs", "/opt/otrs/Kernel/", "/opt/otrs/Kernel/cpan-lib", "/opt/otrs/Custom"); }
+
+#use FindBin qw($Bin);
+#use lib "$Bin/../..";
+#use lib "$Bin/../../Kernel/cpan-lib";
+#use lib "$Bin/../../Custom";
 
 # 0=off;1=on;
 my $Debug = 0;

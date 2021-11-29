@@ -27,6 +27,10 @@ use FindBin qw($Bin);
 use lib dirname($Bin);
 use lib dirname($Bin) . '/Kernel/cpan-lib';
 use lib dirname($Bin) . '/Custom';
+use lib '/opt/otrs/Kernel';
+use lib '/opt/otrs/Custom';
+use lib '/opt/otrs/Kernel/cpan-lib';
+
 
 use File::stat;
 use Digest::MD5;
@@ -84,7 +88,7 @@ sub LoadDefaults {
 
     # FQDN
     # (Full qualified domain name of your system.)
-    $Self->{FQDN} = 'yourhost.example.com';
+    $Self->{FQDN} = 'otrs.m6.xmltwig.org';
 
     # HttpType
     # In case you use HTTPS instead of plain HTTP specify it here
