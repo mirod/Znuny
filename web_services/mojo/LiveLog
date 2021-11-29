@@ -1,12 +1,10 @@
 #!/usr/bin/env perl
+# run with: morbo -l http://otrs.m6.mirod.org:8200 LiveLog
 use Mojolicious::Lite -signatures;
 
 use Kernel::System::Log;
 use Kernel::System::ObjectManager;
 use Digest::MD5 qw(md5_hex);
-
-
-our $msg = "message00001";
 
 websocket '/ws/log' => sub ($c) {
     $c->inactivity_timeout(300);
