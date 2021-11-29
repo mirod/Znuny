@@ -83,6 +83,7 @@ Core.Agent.Admin = Core.Agent.Admin || {};
                         + '<td>' + item.Message + '</td>'
                         + '</tr>';
                     $('#LogEntries tbody').prepend(NewRow)
+                    $('#LogEntries tbody tr.NewRow').first().fadeOut().fadeIn().removeClass('NewRow');
                 });
             }
         };
