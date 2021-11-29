@@ -31,7 +31,7 @@ Core.Agent.Admin = Core.Agent.Admin || {};
     */
     TargetNS.Init = function () {
 
-        var urlMySocket = "ws://otrs.m6.mirod.org:8200/ws/log";
+        var urlMySocket = "ws://' + window.location.hostname + ':8200/ws/log";
 
         /* initialize filter */
         Core.UI.Table.InitTableFilter($('#FilterLogEntries'), $('#LogEntries'));
