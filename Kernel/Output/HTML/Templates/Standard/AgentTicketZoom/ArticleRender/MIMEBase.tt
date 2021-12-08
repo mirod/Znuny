@@ -179,7 +179,7 @@ function CheckIFrameHeight(IFrameID) {
                         <h5>[% Attachment.Filename | html %]</h5>
                         [% IF Attachment.ContentType.match('image') %]
                             [% Translate("Image") | html %]
-                        [% ELSIF Attachment.ContentType == "application/pdf" %]
+                        [% ELSIF Attachment.ContentType.match('^application/pdf') %]
                             [% Translate("PDF") | html %]
                         [% ELSE %]
                             [% Translate("Unknown") | html %]
